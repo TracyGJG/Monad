@@ -1,0 +1,75 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			function doMonad( objMonad, arrInst, fnFinale) {
+				return function( pstr) {
+					var mf = fnLift( arrInst[0]);
+					var mv = objMonad.Return( pstr, arrInst.slice(1));
+					return fnFinale( objMonad.Bind( mv, mf));
+				};
+			}
+
+			function fnLift(fnVV) {
+				return function(val) {				//	mf
+					return objMonad.Return( fnVV( val));
+				};
+			}
+
+			function fnRecuriveBind(mv, mf) {
+				var result = mf( mv.data);
+
+				return (result && mv.rest.length)?
+					(function(mv, mf) {	//	valid result received and not functions to process.
+						return objMonad.Bind( mv, mf);
+					}(
+						objMonad.Return( result.data, mv.rest.slice(1)),
+						fnLift( mv.rest[0]))
+					):	result;
+			}
+
+			var objMonad = {
+				Bind: fnRecuriveBind,
+				Return: function(val, arrRest) {
+					return { data:val, rest: arrRest || []};			//	mv
+				}
+			};
+
+			var arrInstructions = [
+				function(pstr) {
+					var arrData = pstr.split(/\xB0/);
+					return Number(arrData[0]);
+				},
+				function(pnum) {
+					return pnum /5;
+				},
+				function(pnum) {
+					return pnum *9;
+				},
+				function(pnum) {
+					return pnum +32;
+				},
+				function(pnum) {
+					return String(pnum)+ '\xB0F';
+				}
+			];
+
+			function fnFinale(mv) {
+				return (null === mv)?
+					mv: mv.data;
+			}
+
+			var CtoF = doMonad(
+				objMonad,
+				arrInstructions,
+				fnFinale
+			);
+
+			alert( CtoF('25\xB0C'));
+
+		}());
+	</script>
+</body></html>

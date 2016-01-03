@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			function	subtract_32(numT) { return numT-32; }
+			function	divideBy_9(numT) { return numT/9; }
+			function	multiplyBy_5(numT) { return numT*5; }
+
+			var FtoC = [
+				subtract_32,
+				divideBy_9,
+				multiplyBy_5
+			];
+
+			function process( arrInst, numF) {
+				var numT = numF;
+				arrInst.forEach( function(fn) {
+					numT = fn(numT);
+				});
+				return numT;
+			}
+
+			alert( process( FtoC, 77));
+
+		}());
+	</script>
+</body></html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			function	subtract_32(numT) { return numT-32; }
+			function	divideBy_9(numT) { return numT/9; }
+			function	multiplyBy_5(numT) { return numT*5; }
+
+			var FtoC = process(
+				[
+					subtract_32,
+					divideBy_9,
+					multiplyBy_5
+				],
+				function(strF,numT) {
+					var strC = numT+ '\xB0C';
+					console.log( strF+ ' converted to '+ strC);
+					return strC;
+				}
+			);
+
+			function process( arrInst, fnComplete) {
+				return function( strF) {
+					var arrT = strF.split(/\xB0/);
+					var numT = Number(arrT[0]);
+
+					arrInst.forEach( function(fn) {
+						numT = fn(numT);
+						console.log( fn.name+ " = "+ numT);
+					});
+
+					return fnComplete(strF, numT);
+				};
+			}
+
+			alert( FtoC('77\xB0F'));
+
+		}());
+	</script>
+</body></html>

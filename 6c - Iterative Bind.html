@@ -1,0 +1,79 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			function fnIterate( objMonad, pstr, arrInst) {
+				var result = pstr;
+				arrInst.forEach( function(fn) {
+					var mf = fnLift( fn, objMonad);
+					var mv = objMonad.Return( result);
+					result = objMonad.Bind( mv, mf);
+				});
+				return result;
+			}
+
+			function doMonad( objMonad, arrInst, fnFinale, strMethod) {
+				return function( pstr) {
+					var result;
+					result = (strMethod === 'iterative')?
+						fnIterate( objMonad, pstr, arrInst):
+						objMonad.Bind(
+							objMonad.Return( pstr, arrInst.slice(1)),
+							fnLift( arrInst[0], objMonad));
+					return fnFinale( result);
+				};
+			}
+
+			function fnLift(fnVV, objM) {
+				return function(val) {				//	mf
+					return objM.Return( fnVV( val));
+				};
+			}
+
+			var objIterativeMonad = {
+				Bind: function(mv, mf) {
+					return mf( mv);
+				},
+				Return: function(mv) {
+					return mv;
+				}
+			};
+
+			var arrInstructions = [
+				function(pstr) {
+					var arrData = pstr.split(/\xB0/);
+					return Number(arrData[0]);
+				},
+				function(pnum) {
+					return pnum /5;
+				},
+				function(pnum) {
+					return pnum *9;
+				},
+				function(pnum) {
+					return pnum +32;
+				},
+				function(pnum) {
+					return String(pnum)+ '\xB0F';
+				}
+			];
+
+			function fnIterativeFinale(mv) {
+				return mv;
+			}
+
+			var CtoF = doMonad(
+				objIterativeMonad,
+				arrInstructions,
+				fnIterativeFinale,
+				'iterative'
+			);
+
+			alert( CtoF('25\xB0C'));
+
+		}());
+	</script>
+</body></html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			function process( arrInst) {
+				return function( pstr) {
+					var data = pstr;
+					arrInst.forEach( function(fn) {
+						data = fn(data);
+					});
+					return data;
+				};
+			}
+
+			var arrInstructions = [
+				function(pstr) {
+					var arrData = pstr.split(/\xB0/);
+					return Number(arrData[0]);
+				},
+				function(pnum) {
+					return pnum /5;
+				},
+				function(pnum) {
+					return pnum *9;
+				},
+				function(pnum) {
+					return pnum +32;
+				},
+				function(pnum) {
+					return (pnum === null)? pnum:
+						String(pnum)+ '\xB0F';
+				}
+			];
+
+			var CtoF = process( arrInstructions);
+
+			alert( CtoF('25\xB0C'));
+
+		}());
+	</script>
+</body></html>

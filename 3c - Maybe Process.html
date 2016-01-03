@@ -1,0 +1,65 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			function	subtract_32(numT) { return numT-32; }
+			function	divideBy_9(numT) { return numT/0; }			//	Deliberate fault: Division by Zero.
+			function	multiplyBy_5(numT) { return numT*5; }
+
+			var objMonad = {
+				Return: function(numT) {
+					return String(numT)+ '\xB0C';
+				},
+				Bind: function(mv, mf) {
+					var arrT = mv.split(/\xB0/);
+					var numF = Number(arrT[0]);
+					var numC = mf(numF);
+					return (numC === 'Infinity\xB0C')? '': numC;
+				}
+			};
+
+			function Lift( fnNum) {
+				return function( numT) {
+					return objMonad.Return( fnNum( numT));
+				};
+			}
+
+			var FtoC = doMonad(
+				objMonad,
+				[
+					subtract_32,
+					divideBy_9,
+					multiplyBy_5
+				],
+				function(strF,strC) {
+					var strFinalResult = (strC)?
+						( strF+ ' converted to '+ strC):
+						( 'An error occured during the process.');
+					console.log( strFinalResult);
+					return strC;
+				}
+			);
+
+			function doMonad( objM, arrInst, fnComplete) {
+				return function( strF) {
+					function doInst( strT, objMonad, arrRest) {
+						if (!arrRest.length) { return strT; }
+
+						var strM = objMonad.Bind( strT, Lift(arrRest[0]));
+						console.log( arrRest[0].name+ " = "+ strM);
+						if (!strM) { return ""; }
+						return doInst( strM, objMonad, arrRest.slice(1));
+					}
+
+					return fnComplete(strF, doInst( strF, objM, arrInst));
+				};
+			}
+
+			alert( FtoC('77\xB0F'));
+
+		}());
+	</script>
+</body></html>

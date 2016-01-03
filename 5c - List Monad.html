@@ -1,0 +1,77 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			var objMonad = {
+				Return: function(val,rest) {
+					return flattenList( [val]);
+				},
+				Bind: function(mv, mf) {
+					var arrResult = [];
+					if (mv.rest.length) {
+						var arrList= mf();
+						var newMf = Lift( mv.rest[0]);
+						var newMv = {
+							data: mv.data,
+							rest: mv.rest.slice(1)
+						};
+						arrList.forEach(
+							function(val) {
+								newMv.data = objMonad.Return( mv.data.concat(val));
+								arrResult.push( objMonad.Bind( newMv, newMf));
+							}
+						)
+						console.log("Bind-List: "+ arrResult);
+					}
+					else {
+						arrResult = mf(mv.data);
+						console.log("Bind-Mult: "+ arrResult);
+					}
+					return arrResult;
+				}
+			};
+
+			function Lift( fnNum) {
+				return function( objT) {
+					return objMonad.Return( fnNum( objT));
+				};
+			}
+
+			function flattenList( arrSubject) {
+				return (arrSubject.toString()).split(/,/g);
+			}
+
+			var matrixMultiplier = doMonad(
+				objMonad,
+				[
+					function() {	return [1,3,5];	},
+					function() {	return [10,20,30];	},
+					function(arr) {	return [arr[0]*arr[1]];	}
+				],
+				flattenList
+			);
+
+			function doMonad( objM, arrInst, fnComplete) {
+				return function( arrEmpty) {
+					var mf = Lift( arrInst[0]);
+					var mv = {
+						data: arrEmpty,
+						rest: arrInst.slice(1)
+					};
+					return fnComplete( objM.Bind( mv, mf));
+				};
+			}
+
+			var arrResult = matrixMultiplier([]);
+
+			alert(
+				arrResult+ " ("+
+				arrResult.length+ ")"
+			);
+
+		}());
+	</script>
+</body></html>

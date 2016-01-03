@@ -1,0 +1,59 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			function	subtract_32(numT) { return numT-32; }
+			function	divideBy_9(numT) { return numT/9; }
+			function	multiplyBy_5(numT) { return numT*5; }
+
+			function Return(numT) {
+				return String(numT)+ '\xB0C';
+			}
+
+			function Bind(mv, mf) {
+				var arrT = mv.split(/\xB0/);
+				var numT = Number(arrT[0]);
+				return mf(numT);
+			}
+
+			function Lift( fnNum) {
+				return function( numT) {
+					return Return( fnNum( numT));
+				};
+			}
+
+			var FtoC = process(
+				[
+					subtract_32,
+					divideBy_9,
+					multiplyBy_5
+				],
+				function(strF,strC) {
+					console.log( strF+ ' converted to '+ strC);
+					return strC;
+				}
+			);
+
+			function process( arrInst, fnComplete) {
+				return function( strF) {
+					var fnM;
+					var strM= strF;
+
+					arrInst.forEach( function(fn) {
+						fnM = Lift(fn);
+						strM = Bind( strM, fnM);
+						console.log( fn.name+ " = "+ strM);
+					});
+
+					return fnComplete(strF, strM);
+				};
+			}
+
+			alert( FtoC('77\xB0F'));
+
+		}());
+	</script>
+</body></html>

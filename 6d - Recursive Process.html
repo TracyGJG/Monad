@@ -1,0 +1,106 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			function fnRecurse( objMonad, mv, mf) {
+				var result = objMonad.Bind( mv, mf);
+				return (result && mv.rest.length)?
+					(function(mv, mf) {	//	valid result received and not functions to process.
+						return fnRecurse( objMonad, mv, mf);
+					}(
+						objMonad.Return( result.data, mv.rest.slice(1)),
+						fnLift( mv.rest[0], objMonad))
+					):	result;
+			}
+
+			function fnIterate( objMonad, pstr, arrInst) {
+				var result = pstr;
+				arrInst.forEach( function(fn) {
+					var mf = fnLift( fn, objMonad);
+					var mv = objMonad.Return( result);
+					result = objMonad.Bind( mv, mf);
+				});
+				return result;
+			}
+
+			function doMonad( objMonad, arrInst, fnFinale, strMethod) {
+				return function( pstr) {
+					var result;
+					var mf = fnLift( arrInst[0], objMonad);
+					var mv = objMonad.Return( pstr, arrInst.slice(1));
+					result = (strMethod === 'iterative')?
+						fnIterate( objMonad, pstr, arrInst): (
+							(strMethod === 'recursive')?
+								fnRecurse( objMonad, mv, mf):
+								objMonad.Bind( mv, mf));
+					return fnFinale( result);
+				};
+			}
+
+			function fnLift(fnVV, objM) {
+				return function(val) {				//	mf
+					return objM.Return( fnVV( val));
+				};
+			}
+
+			var objRecursiveMonad = {
+				Bind: function(mv, mf) {
+					return mf( mv.data);
+				},
+				Return: function( val, arrRest) {
+					return { data:val, rest: arrRest || []};
+				}
+			};
+
+			var objIterativeMonad = {
+				Bind: function(mv, mf) {
+					return mf( mv);
+				},
+				Return: function(mv) {
+					return mv;
+				}
+			};
+
+			var arrInstructions = [
+				function(pstr) {
+					var arrData = pstr.split(/\xB0/);
+					return Number(arrData[0]);
+				},
+				function(pnum) {
+					return pnum /5;
+				},
+				function(pnum) {
+					return pnum *9;
+				},
+				function(pnum) {
+					return pnum +32;
+				},
+				function(pnum) {
+					return String(pnum)+ '\xB0F';
+				}
+			];
+
+			function fnRecursiveFinale(mv) {
+				return (null === mv)?
+					mv: mv.data;
+			}
+
+			function fnIterativeFinale(mv) {
+				return mv;
+			}
+
+			var CtoF = doMonad(
+				objRecursiveMonad,
+				arrInstructions,
+				fnRecursiveFinale,
+				'recursive'
+			);
+
+			alert( CtoF('25\xB0C'));
+
+		}());
+	</script>
+</body></html>

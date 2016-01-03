@@ -1,0 +1,63 @@
+<!doctype html>
+<html><head>
+</head><body>
+
+	<script>
+		(function(){
+
+			function	divideBy_5(numT) { return numT/5; }
+			function	multiplyBy_9(numT) { return numT*9; }
+			function	add_32(numT) { return numT+32; }
+
+			var objMonad = {
+				Return: function(numT) {
+					return String(numT)+ '\xB0F';
+				},
+				Bind: function(mv, mf) {
+					var arrT = mv.split(/\xB0/);
+					var numT = mf(Number(arrT[0]));
+					return (numT === 'Infinity\xB0F')? '': numT;
+				}
+			};
+
+			function Lift( fnNum) {
+				return function( numT) {
+					return objMonad.Return( fnNum( numT));
+				};
+			}
+
+			var CtoF = doMonad(
+				objMonad,
+				[
+					divideBy_5,
+					multiplyBy_9,
+					add_32
+				],
+				function(strC,strF) {
+					console.log( (strF)?
+						( strC+ ' converted to '+ strF):
+						( 'An error occured during the process.'));
+					return strF;
+				}
+			);
+
+			function doMonad( objM, arrInst, fnComplete) {
+				return function( strC) {
+					function doInst( strT, objMonad, arrRest) {
+						return (!arrRest.length)? strT:
+							(function(strM) {
+								console.log( arrRest[0].name+ " = "+ strM);
+								return (!strM)? "":
+									doInst( strM, objMonad, arrRest.slice(1));
+							})(objMonad.Bind( strT, Lift(arrRest[0])));
+					}
+
+					return fnComplete(strC, doInst( strC, objM, arrInst));
+				};
+			}
+
+			alert( CtoF('25\xB0C'));
+
+		}());
+	</script>
+</body></html>
